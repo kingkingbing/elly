@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Dot & Line</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .dot {
+                transition: all 0.3s ease;
+            }
+            .dot:hover {
+                transform: scale(1.2);
+                box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.2);
+            }
+            .line {
+                stroke-width: 4;
+                stroke-linecap: round;
+                transition: stroke-dashoffset 0.5s ease;
+            }
+            .animate-draw {
+                stroke-dasharray: 1000;
+                stroke-dashoffset: 1000;
+                animation: draw 1s ease forwards;
+            }
+            @keyframes draw {
+                to {
+                    stroke-dashoffset: 0;
+                }
+            }
+            .bg-gradient {
+                background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gradient min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
+    <div class="w-full max-w-4xl mx-auto relative">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-dark mb-2">Interactive Dot & Line</h1>
+            <p class="text-gray-600 text-lg">Click the dot to start drawing a line</p>
+        </header>
+        
+        <!-- Canvas Container -->
+        <div class="bg-white rounded-xl shadow-xl p-6 mb-8 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full bg-grid opacity-10"></div>
+            
+            <!-- SVG Canvas -->
+            <svg id="canvas" class="w-full h-[500px] cursor-crosshair" viewBox="0 0 800 500">
+                <!-- Grid background -->
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="0.5"/>
+                </pattern>
+                <rect width="100%" height="100%" fill="url(#grid)" fill-opacity="0.1" />
+                
+                <!-- Main dot -->
+                <circle id="dot" class="dot cursor-pointer" cx="400" cy="250" r="12" fill="primary" />
+                
+                <!-- Lines container -->
+                <g id="lines"></g>
+                
+                <!-- Current line (while drawing) -->
+                <line id="currentLine" class="line" x1="400" y1="250" x2="400" y2="250" stroke="primary" />
+            </svg>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-4 mb-6">
+            <h3 class="font-semibold text-dark mb-2 flex items-center">
+                <i class="fa fa-info-circle text-primary mr-2"></i> How to use
+            </h3>
+            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                <li>Click on the <span class="text-primary font-medium">blue dot</span> to start drawing</li>
+                <li>Move your mouse to extend the line</li>
+                <li>Release the mouse button to fix the line in place</li>
+                <li>Click the dot again to draw another line</li>
+            </ul>
+        </div>
+        
+        <!-- Controls -->
+        <div class="flex flex-wrap justify-center gap-3 mb-8">
+            <button id="clearBtn" class="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition-all duration-300 flex items-center">
+                <i class="fa fa-trash mr-2"></i> Clear All Lines
+            </button>
+            <button id="undoBtn" class="px-5 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-full shadow transition-all duration-300 flex items-center">
+                <i class="fa fa-undo mr-2"></i> Undo Last Line
+            </button>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="text-center text-gray-500 text-sm">
+            <p>Created with <i class="fa fa-heart text-red-500"></i> and <i class="fa fa-code text-primary"></i></p>
+        </footer>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const canvas = document.getElementById('canvas');
+        const dot = document.getElementById('dot');
+        const currentLine = document.getElementById('currentLine');
+        const linesContainer = document.getElementById('lines');
+        const clearBtn = document.getElementById('clearBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        
+        // State variables
+        let isDrawing = false;
+        let dotX = 400;
+        let dotY = 250;
+        let lines = [];
+        
+        // Initialize dot position
+        updateDotPosition(dotX, dotY);
+        
+        // Event listeners
+        dot.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', updateLine);
+        canvas.addEventListener('mouseup', endDrawing);
+        canvas.addEventListener('mouseleave', endDrawing);
+        clearBtn.addEventListener('click', clearAllLines);
+        undoBtn.addEventListener('click', undoLastLine);
+        
+        // Handle window resize to keep the dot centered
+        window.addEventListener('resize', () => {
+            const viewBox = canvas.viewBox.baseVal;
+            dotX = viewBox.width / 2;
+            dotY = viewBox.height / 2;
+            updateDotPosition(dotX, dotY);
+            if (lines.length > 0) {
+                // Update the starting point of all lines
+                lines.forEach(line => {
+                    line.setAttribute('x1', dotX);
+                    line.setAttribute('y1', dotY);
+                });
+            }
+        });
+        
+        // Start drawing function
+        function startDrawing() {
+            isDrawing = true;
+            dot.classList.add('scale-110');
+            dot.classList.add('ring-4');
+            dot.classList.add('ring-primary/30');
+        }
+        
+        // Update line position while drawing
+        function updateLine(e) {
+            if (!isDrawing) return;
+            
+            const svgPoint = canvas.createSVGPoint();
+            svgPoint.x = e.clientX;
+            svgPoint.y = e.clientY;
+            
+            // Convert to SVG coordinate system
+            const ctm = canvas.getScreenCTM().inverse();
+            const point = svgPoint.matrixTransform(ctm);
+            
+            // Update current line
+            currentLine.setAttribute('x2', point.x);
+            currentLine.setAttribute('y2', point.y);
+        }
+        
+        // End drawing function
+        function endDrawing() {
+            if (!isDrawing) return;
+            
+            isDrawing = false;
+            dot.classList.remove('scale-110');
+            dot.classList.remove('ring-4');
+            dot.classList.remove('ring-primary/30');
+            
+            // Create a new line element and add it to the lines container
+            const newLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            newLine.setAttribute('x1', dotX);
+            newLine.setAttribute('y1', dotY);
+            newLine.setAttribute('x2', currentLine.getAttribute('x2'));
+            newLine.setAttribute('y2', currentLine.getAttribute('y2'));
+            newLine.setAttribute('stroke', getRandomColor());
+            newLine.setAttribute('stroke-width', '4');
+            newLine.setAttribute('stroke-linecap', 'round');
+            newLine.classList.add('line');
+            newLine.classList.add('animate-draw');
+            
+            linesContainer.appendChild(newLine);
+            lines.push(newLine);
+            
+            // Reset current line
+            currentLine.setAttribute('x2', dotX);
+            currentLine.setAttribute('y2', dotY);
+        }
+        
+        // Update dot position
+        function updateDotPosition(x, y) {
+            dot.setAttribute('cx', x);
+            dot.setAttribute('cy', y);
+            currentLine.setAttribute('x1', x);
+            currentLine.setAttribute('y1', y);
+        }
+        
+        // Clear all lines
+        function clearAllLines() {
+            linesContainer.innerHTML = '';
+            lines = [];
+        }
+        
+        // Undo last line
+        function undoLastLine() {
+            if (lines.length > 0) {
+                const lastLine = lines.pop();
+                linesContainer.removeChild(lastLine);
+            }
+        }
+        
+        // Generate a random color from a curated palette
+        function getRandomColor() {
+            const colors = [
+                '#4F46E5', // primary
+                '#10B981', // secondary
+                '#F59E0B', // accent
+                '#EF4444', // red
+                '#8B5CF6', // purple
+                '#EC4899', // pink
+                '#3B82F6', // blue
+                '#14B8A6'  // teal
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+    </script>
+</body>
+</html>
