@@ -3,155 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>文件夹内容</title>
+  <title>项目导航</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
+      background-color: #f8f9fa;
+      margin: 0;
       padding: 20px;
       line-height: 1.6;
     }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
     h1 {
       color: #333;
       border-bottom: 1px solid #eee;
-      padding-bottom: 10px;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+      text-align: center;
     }
+    
     ul {
       list-style-type: none;
       padding: 0;
+      margin: 0;
     }
+    
     li {
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
+    
     a {
-      color: #0066cc;
+      color: #007bff;
       text-decoration: none;
+      display: inline-block;
+      padding: 8px 12px;
+      background-color: #f0f7ff;
+      border-radius: 4px;
+      transition: background-color 0.2s;
     }
+    
     a:hover {
+      background-color: #e0f0ff;
       text-decoration: underline;
     }
-    .folder-icon {
-      color: #ffc107;
-      margin-right: 8px;
+    
+    .folder {
+      margin-left: 20px;
+      border-left: 1px solid #ddd;
+      padding-left: 15px;
+      margin-top: 10px;
+      margin-bottom: 20px;
     }
-    .file-icon {
-      color: #6c757d;
-      margin-right: 8px;
-    }
-    .loading {
-      color: #6c757d;
-      font-style: italic;
-    }
-    .error {
-      color: #dc3545;
+    
+    .folder-title {
       font-weight: bold;
+      color: #555;
+      margin-bottom: 10px;
+      display: block;
+    }
+    
+    .back-link {
+      margin-bottom: 20px;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <h1>当前文件夹内容</h1>
-  
-  <div id="content">
-    <p class="loading">正在加载文件夹内容...</p>
+  <div class="container">
+    <h1>项目导航</h1>
+    
+    <ul>
+      <li><a href="a.html">a.html</a></li>
+      <li><a href="get_test.txt.html">get_test.txt.html</a></li>
+      
+      <li class="folder-title">cards_showCase 文件夹</li>
+      <div class="folder">
+        <li><a href="cards_showCase/a.html">cards_showCase/a.html</a></li>
+      </div>
+      
+      <li class="folder-title">frozen 文件夹</li>
+      <div class="folder">
+        <li><a href="frozen/a.html">frozen/a.html</a></li>
+      </div>
+      
+      <li class="folder-title">planets 文件夹</li>
+      <div class="folder">
+        <li><a href="planets/game_cards.html">planets/game_cards.html</a></li>
+      </div>
+      
+      <li class="folder-title">princess 文件夹</li>
+      <div class="folder">
+        <li><a href="princess/princess_cards.html">princess/princess_cards.html</a></li>
+      </div>
+    </ul>
   </div>
-
-  <script>
-    // 自动尝试获取当前HTML文件所在的文件夹
-    async function tryGetHtmlFileDirectory() {
-      try {
-        // 检查浏览器是否支持showOpenFilePicker API
-        if (!window.showOpenFilePicker) {
-          throw new Error('您的浏览器不支持自动加载当前文件夹');
-        }
-        
-        // 提示用户选择当前HTML文件
-        const [handle] = await window.showOpenFilePicker({
-          types: [
-            {
-              description: 'HTML文件',
-              accept: { 'text/html': ['.html', '.htm'] }
-            }
-          ],
-          multiple: false
-        });
-        
-        // 获取文件所在目录
-        const parentDirectory = await handle.getParent();
-        
-        // 显示文件夹内容
-        await displayDirectoryContent(parentDirectory);
-        
-        return true;
-      } catch (error) {
-        console.error('获取当前HTML文件所在文件夹时出错:', error);
-        
-        // 显示错误信息
-        const contentDiv = document.getElementById('content');
-        contentDiv.innerHTML = `
-          <p class="error">加载文件夹内容失败: ${error.message}</p>
-          <p>请尝试手动选择HTML文件，或使用支持File System Access API的现代浏览器。</p>
-        `;
-        
-        return false;
-      }
-    }
-
-    // 显示目录内容
-    async function displayDirectoryContent(directoryHandle) {
-      const contentDiv = document.getElementById('content');
-      
-      // 创建文件列表
-      const fileList = document.createElement('ul');
-      
-      // 遍历目录内容
-      for await (const entry of directoryHandle.values()) {
-        const listItem = document.createElement('li');
-        const link = document.createElement('a');
-        
-        if (entry.kind === 'directory') {
-          // 文件夹
-          link.innerHTML = '<i class="fa fa-folder folder-icon"></i>' + entry.name + '/';
-          link.href = '#';
-          link.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await displayDirectoryContent(entry);
-          });
-        } else {
-          // 文件
-          link.innerHTML = '<i class="fa fa-file file-icon"></i>' + entry.name;
-          
-          try {
-            // 尝试创建文件URL
-            const file = await entry.getFile();
-            const url = URL.createObjectURL(file);
-            link.href = url;
-            link.target = '_blank';
-          } catch (error) {
-            // 如果无法创建URL，使用相对路径
-            link.href = entry.name;
-            link.target = '_blank';
-          }
-        }
-        
-        listItem.appendChild(link);
-        fileList.appendChild(listItem);
-      }
-      
-      // 清空内容区域并添加文件列表
-      contentDiv.innerHTML = '';
-      contentDiv.appendChild(fileList);
-    }
-
-    // 页面加载完成后执行
-    document.addEventListener('DOMContentLoaded', async () => {
-      // 尝试加载当前HTML文件所在的文件夹
-      await tryGetHtmlFileDirectory();
-    });
-  </script>
-  
-  <!-- 引入Font Awesome -->
-  <script src="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"></script>
 </body>
 </html>
-
