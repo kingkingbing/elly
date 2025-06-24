@@ -1,10 +1,1189 @@
 <!DOCTYPE html>
-<html lang="en">
-<body>
-    <div>
-        <a href="https://kingkingbing.github.io/elly/a.html">a.html</a>
-        <a href="https://kingkingbing.github.io/elly/a.html">https://kingkingbing.github.io/elly/a.html</a>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文件浏览器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3B82F6',
+            secondary: '#10B981',
+            accent: '#8B5CF6',
+            dark: '#1F2937',
+            light: '#F9FAFB'
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .tree-node-connector {
+        border-left: 1px dashed #9CA3AF;
+        margin-left: 10px;
+        padding-left: 10px;
+      }
+    }
+  </style>
+</head>
 
+<body class="bg-gray-50 font-inter text-gray-800 min-h-screen flex flex-col">
+  <!-- 顶部导航栏 -->
+  <header class="bg-white shadow-md sticky top-0 z-50 transition-all duration-300">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-folder-open text-primary text-2xl"></i>
+        <h1 class="text-xl md:text-2xl font-bold text-gray-800">文件浏览器</h1>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <button id="refreshBtn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105">
+          <i class="fa fa-refresh mr-2"></i>
+          <span>刷新</span>
+        </button>
+        
+        <button id="selectFolderBtn" class="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105">
+          <i class="fa fa-folder-plus mr-2"></i>
+          <span>选择文件夹</span>
+        </button>
+      </div>
     </div>
+  </header>
+
+  <!-- 主内容区域 -->
+  <main class="flex-grow container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- 左侧文件树 -->
+    <aside class="lg:col-span-3 bg-white rounded-xl shadow-md p-4 h-[calc(100vh-14rem)] overflow-y-auto scrollbar-hide transition-all duration-300">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-700 flex items-center">
+          <i class="fa fa-sitemap text-primary mr-2"></i>文件结构
+        </h2>
+        <button id="collapseAllBtn" class="text-gray-500 hover:text-primary transition-colors">
+          <i class="fa fa-compress"></i>
+        </button>
+      </div>
+      
+      <div id="fileTree" class="space-y-2">
+        <!-- 文件树将通过JavaScript动态生成 -->
+        <div class="text-center py-8 text-gray-500">
+          <i class="fa fa-folder-open-o text-4xl mb-2"></i>
+          <p>正在加载当前文件夹...</p>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- 右侧文件列表 -->
+    <section class="lg:col-span-9 bg-white rounded-xl shadow-md p-4 transition-all duration-300">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
+        <div class="flex items-center mb-2 md:mb-0">
+          <i class="fa fa-files-o text-primary mr-2"></i>
+          <h2 class="text-lg font-semibold text-gray-700">文件列表</h2>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <div class="relative">
+            <input type="text" id="searchInput" placeholder="搜索文件..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all duration-300 w-full md:w-64">
+            <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+          
+          <div class="flex">
+            <button id="viewGridBtn" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-l-lg transition-colors">
+              <i class="fa fa-th-large text-gray-600"></i>
+            </button>
+            <button id="viewListBtn" class="p-2 bg-gray-200 hover:bg-gray-300 rounded-r-lg transition-colors">
+              <i class="fa fa-list text-gray-600"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="pathBreadcrumb" class="flex items-center mb-4 text-sm text-gray-600">
+        <a href="#" class="hover:text-primary transition-colors flex items-center">
+          <i class="fa fa-home mr-1"></i>
+          <span>根目录</span>
+        </a>
+      </div>
+      
+      <div id="fileList" class="min-h-[calc(100vh-18rem)]">
+        <!-- 文件列表将通过JavaScript动态生成 -->
+        <div class="text-center py-12 text-gray-500">
+          <i class="fa fa-file-o text-5xl mb-3"></i>
+          <p class="text-lg">正在加载当前文件夹...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark text-white py-4 mt-8">
+    <div class="container mx-auto px-4 text-center">
+      <p>文件浏览器 &copy; 2023 - 一个便捷的本地文件浏览工具</p>
+    </div>
+  </footer>
+
+  <!-- 文件详情模态框 -->
+  <div id="fileDetailModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-95">
+      <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-800">文件详情</h3>
+        <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700 transition-colors">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <div id="modalContent" class="p-6 overflow-y-auto max-h-[calc(90vh-12rem)]">
+        <!-- 文件详情内容将通过JavaScript动态生成 -->
+      </div>
+      
+      <div class="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+        <button id="downloadFileBtn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105">
+          <i class="fa fa-download mr-2"></i>
+          <span>下载文件</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 全局变量
+    let currentDirectory = null;
+    let fileHandleMap = new Map();
+    let currentView = 'list'; // 'list' 或 'grid'
+    let pathStack = [];
+    let currentHtmlFileHandle = null;
+
+    // DOM 元素
+    const fileTree = document.getElementById('fileTree');
+    const fileList = document.getElementById('fileList');
+    const selectFolderBtn = document.getElementById('selectFolderBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const viewGridBtn = document.getElementById('viewGridBtn');
+    const viewListBtn = document.getElementById('viewListBtn');
+    const searchInput = document.getElementById('searchInput');
+    const pathBreadcrumb = document.getElementById('pathBreadcrumb');
+    const collapseAllBtn = document.getElementById('collapseAllBtn');
+    const fileDetailModal = document.getElementById('fileDetailModal');
+    const modalContent = document.getElementById('modalContent');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const downloadFileBtn = document.getElementById('downloadFileBtn');
+
+    // 初始化事件监听器
+    function initEventListeners() {
+      selectFolderBtn.addEventListener('click', openDirectoryPicker);
+      refreshBtn.addEventListener('click', refreshFileList);
+      viewGridBtn.addEventListener('click', () => switchView('grid'));
+      viewListBtn.addEventListener('click', () => switchView('list'));
+      searchInput.addEventListener('input', filterFiles);
+      collapseAllBtn.addEventListener('click', collapseAllFolders);
+      closeModalBtn.addEventListener('click', closeFileDetailModal);
+      downloadFileBtn.addEventListener('click', downloadCurrentFile);
+    }
+
+    // 尝试自动获取当前HTML文件所在的文件夹
+    async function tryGetHtmlFileDirectory() {
+      try {
+        // 显示加载状态
+        fileList.innerHTML = `
+          <div class="text-center py-12 text-gray-500">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-3"></div>
+            <p class="text-lg">正在加载当前文件夹...</p>
+          </div>
+        `;
+        
+        // 检查浏览器是否支持showOpenFilePicker API
+        if (!window.showOpenFilePicker) {
+          showNotification('提示', '您的浏览器不支持自动加载当前文件夹，请手动选择文件夹', 'info');
+          return false;
+        }
+        
+        // 提示用户选择当前HTML文件
+        const [handle] = await window.showOpenFilePicker({
+          types: [
+            {
+              description: 'HTML文件',
+              accept: { 'text/html': ['.html', '.htm'] }
+            }
+          ],
+          multiple: false
+        });
+        
+        // 保存当前HTML文件句柄
+        currentHtmlFileHandle = handle;
+        
+        // 获取文件所在目录
+        const parentDirectory = await handle.getParent();
+        
+        // 更新当前目录
+        currentDirectory = parentDirectory;
+        pathStack = [parentDirectory.name];
+        
+        // 清除并重建文件树和文件列表
+        fileTree.innerHTML = '';
+        fileList.innerHTML = '';
+        
+        // 生成文件树和文件列表
+        await generateFileTree(parentDirectory, fileTree);
+        await displayFiles(parentDirectory);
+        
+        // 更新面包屑导航
+        updateBreadcrumb();
+        
+        // 显示成功消息
+        showNotification('成功', `已加载文件夹: ${parentDirectory.name}`, 'success');
+        
+        return true;
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          showNotification('提示', '用户取消了文件选择', 'info');
+        } else {
+          console.error('获取当前HTML文件所在文件夹时出错:', error);
+          showNotification('错误', '无法自动加载当前文件夹，请手动选择文件夹', 'error');
+        }
+        return false;
+      }
+    }
+
+    // 打开目录选择器
+    async function openDirectoryPicker() {
+      try {
+        // 打开目录选择器
+        const directoryHandle = await window.showDirectoryPicker({
+          mode: 'readwrite',
+          startIn: 'downloads'
+        });
+
+        // 更新当前目录
+        currentDirectory = directoryHandle;
+        pathStack = [directoryHandle.name];
+        
+        // 清除并重建文件树和文件列表
+        fileTree.innerHTML = '';
+        fileList.innerHTML = '';
+        
+        // 生成文件树和文件列表
+        await generateFileTree(directoryHandle, fileTree);
+        await displayFiles(directoryHandle);
+        
+        // 更新面包屑导航
+        updateBreadcrumb();
+        
+        // 显示成功消息
+        showNotification('成功', `已加载文件夹: ${directoryHandle.name}`, 'success');
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          showNotification('提示', '用户取消了文件夹选择', 'info');
+        } else {
+          console.error('打开文件夹时出错:', error);
+          showNotification('错误', '无法打开文件夹，请确保您的浏览器支持File System Access API', 'error');
+        }
+      }
+    }
+
+    // 生成文件树
+    async function generateFileTree(directoryHandle, parentElement, isRoot = true) {
+      const folderId = `folder-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // 创建文件夹节点
+      const folderNode = document.createElement('div');
+      folderNode.className = 'animate-fadeIn';
+      
+      // 文件夹标题
+      const folderTitle = document.createElement('div');
+      folderTitle.className = 'flex items-center py-1 px-2 rounded hover:bg-gray-100 cursor-pointer transition-colors';
+      
+      // 展开/折叠图标
+      const expandIcon = document.createElement('i');
+      expandIcon.className = isRoot ? 'fa fa-chevron-down mr-2 text-xs text-gray-500' : 'fa fa-chevron-right mr-2 text-xs text-gray-500';
+      folderTitle.appendChild(expandIcon);
+      
+      // 文件夹图标
+      const folderIcon = document.createElement('i');
+      folderIcon.className = 'fa fa-folder text-yellow-500 mr-2';
+      folderTitle.appendChild(folderIcon);
+      
+      // 文件夹名称
+      const folderName = document.createElement('span');
+      folderName.textContent = isRoot ? '根目录' : directoryHandle.name;
+      folderTitle.appendChild(folderName);
+      
+      // 将文件夹标题添加到节点
+      folderNode.appendChild(folderTitle);
+      
+      // 创建子文件夹容器
+      const subFoldersContainer = document.createElement('div');
+      subFoldersContainer.className = 'pl-6 tree-node-connector mt-1';
+      subFoldersContainer.id = folderId;
+      
+      if (isRoot) {
+        subFoldersContainer.style.display = 'block';
+      } else {
+        subFoldersContainer.style.display = 'none';
+      }
+      
+      // 为文件夹标题添加点击事件
+      folderTitle.addEventListener('click', async () => {
+        // 切换展开/折叠状态
+        if (subFoldersContainer.style.display === 'none') {
+          subFoldersContainer.style.display = 'block';
+          expandIcon.className = 'fa fa-chevron-down mr-2 text-xs text-gray-500';
+        } else {
+          subFoldersContainer.style.display = 'none';
+          expandIcon.className = 'fa fa-chevron-right mr-2 text-xs text-gray-500';
+        }
+      });
+      
+      // 双击打开文件夹
+      folderTitle.addEventListener('dblclick', async () => {
+        await displayFiles(directoryHandle);
+        // 更新路径栈
+        pathStack = [];
+        let currentHandle = directoryHandle;
+        const pathParts = [];
+        
+        while (currentHandle) {
+          pathParts.unshift(currentHandle.name);
+          currentHandle = fileHandleMap.get(currentHandle.parentKey);
+        }
+        
+        pathStack = pathParts;
+        updateBreadcrumb();
+      });
+      
+      // 单击显示文件夹内容
+      folderTitle.addEventListener('click', async (e) => {
+        if (e.detail === 1) { // 单次点击
+          await displayFiles(directoryHandle);
+          // 更新路径栈
+          pathStack = [];
+          let currentHandle = directoryHandle;
+          const pathParts = [];
+          
+          while (currentHandle) {
+            pathParts.unshift(currentHandle.name);
+            currentHandle = fileHandleMap.get(currentHandle.parentKey);
+          }
+          
+          pathStack = pathParts;
+          updateBreadcrumb();
+        }
+      });
+      
+      // 添加到父元素
+      parentElement.appendChild(folderNode);
+      parentElement.appendChild(subFoldersContainer);
+      
+      // 遍历目录内容
+      for await (const entry of directoryHandle.values()) {
+        if (entry.kind === 'directory') {
+          // 为子目录创建唯一的父键
+          const parentKey = `${directoryHandle.name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          entry.parentKey = parentKey;
+          fileHandleMap.set(parentKey, directoryHandle);
+          
+          // 递归生成子目录树
+          await generateFileTree(entry, subFoldersContainer, false);
+        }
+      }
+    }
+
+    // 显示文件列表
+    async function displayFiles(directoryHandle) {
+      // 清空文件列表
+      fileList.innerHTML = '';
+      
+      // 创建文件数组
+      const files = [];
+      const directories = [];
+      
+      // 遍历目录内容
+      for await (const entry of directoryHandle.values()) {
+        if (entry.kind === 'file') {
+          files.push(entry);
+        } else if (entry.kind === 'directory') {
+          directories.push(entry);
+        }
+      }
+      
+      // 按名称排序
+      directories.sort((a, b) => a.name.localeCompare(b.name));
+      files.sort((a, b) => a.name.localeCompare(b.name));
+      
+      // 显示空状态
+      if (directories.length === 0 && files.length === 0) {
+        fileList.innerHTML = `
+          <div class="text-center py-12 text-gray-500">
+            <i class="fa fa-folder-open-o text-5xl mb-3"></i>
+            <p class="text-lg">此文件夹为空</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // 创建文件列表容器
+      const filesContainer = document.createElement('div');
+      filesContainer.className = currentView === 'grid' 
+        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' 
+        : 'space-y-1';
+      
+      // 先添加目录
+      for (const directory of directories) {
+        const item = createDirectoryItem(directory);
+        filesContainer.appendChild(item);
+      }
+      
+      // 再添加文件
+      for (const file of files) {
+        const item = createFileItem(file);
+        filesContainer.appendChild(item);
+      }
+      
+      // 添加到文件列表
+      fileList.appendChild(filesContainer);
+    }
+
+    // 创建目录项
+    function createDirectoryItem(directoryHandle) {
+      const item = document.createElement('div');
+      
+      if (currentView === 'grid') {
+        // 网格视图
+        item.className = 'bg-gray-50 hover:bg-gray-100 rounded-lg p-3 cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md';
+        
+        item.innerHTML = `
+          <div class="flex flex-col items-center text-center">
+            <div class="w-12 h-12 flex items-center justify-center text-yellow-500 mb-2">
+              <i class="fa fa-folder text-3xl"></i>
+            </div>
+            <span class="font-medium truncate w-full">${directoryHandle.name}</span>
+          </div>
+        `;
+      } else {
+        // 列表视图
+        item.className = 'flex items-center py-2 px-3 rounded hover:bg-gray-100 cursor-pointer transition-colors';
+        
+        item.innerHTML = `
+          <div class="flex items-center w-full">
+            <div class="w-8 text-yellow-500">
+              <i class="fa fa-folder"></i>
+            </div>
+            <span class="flex-grow truncate">${directoryHandle.name}</span>
+            <span class="text-xs text-gray-500">文件夹</span>
+          </div>
+        `;
+      }
+      
+      // 点击事件 - 打开目录
+      item.addEventListener('click', async () => {
+        await displayFiles(directoryHandle);
+        
+        // 更新路径栈
+        pathStack.push(directoryHandle.name);
+        updateBreadcrumb();
+      });
+      
+      return item;
+    }
+
+    // 创建文件项
+    function createFileItem(fileHandle) {
+      const item = document.createElement('div');
+      const fileExtension = getFileExtension(fileHandle.name);
+      const fileIcon = getFileIcon(fileExtension);
+      
+      if (currentView === 'grid') {
+        // 网格视图
+        item.className = 'bg-gray-50 hover:bg-gray-100 rounded-lg p-3 cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md';
+        
+        item.innerHTML = `
+          <div class="flex flex-col items-center text-center">
+            <div class="w-12 h-12 flex items-center justify-center ${getFileIconColor(fileExtension)} mb-2">
+              <i class="fa ${fileIcon} text-3xl"></i>
+            </div>
+            <span class="font-medium truncate w-full">${fileHandle.name}</span>
+          </div>
+        `;
+      } else {
+        // 列表视图
+        item.className = 'flex items-center py-2 px-3 rounded hover:bg-gray-100 cursor-pointer transition-colors';
+        
+        item.innerHTML = `
+          <div class="flex items-center w-full">
+            <div class="w-8 ${getFileIconColor(fileExtension)}">
+              <i class="fa ${fileIcon}"></i>
+            </div>
+            <span class="flex-grow truncate">${fileHandle.name}</span>
+            <span class="text-xs text-gray-500">${formatFileSize(fileHandle.size)}</span>
+          </div>
+        `;
+      }
+      
+      // 点击事件 - 显示文件详情
+      item.addEventListener('click', async () => {
+        try {
+          const file = await fileHandle.getFile();
+          showFileDetailModal(fileHandle, file);
+        } catch (error) {
+          console.error('获取文件详情时出错:', error);
+          showNotification('错误', '无法获取文件详情', 'error');
+        }
+      });
+      
+      // 双击事件 - 下载文件
+      item.addEventListener('dblclick', async () => {
+        try {
+          const file = await fileHandle.getFile();
+          downloadFile(fileHandle, file);
+        } catch (error) {
+          console.error('下载文件时出错:', error);
+          showNotification('错误', '无法下载文件', 'error');
+        }
+      });
+      
+      return item;
+    }
+
+    // 获取文件扩展名
+    function getFileExtension(filename) {
+      const parts = filename.split('.');
+      return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
+    }
+
+    // 获取文件图标
+    function getFileIcon(extension) {
+      const iconMap = {
+        // 图片
+        'jpg': 'fa-file-image-o',
+        'jpeg': 'fa-file-image-o',
+        'png': 'fa-file-image-o',
+        'gif': 'fa-file-image-o',
+        'bmp': 'fa-file-image-o',
+        'svg': 'fa-file-image-o',
+        
+        // 文档
+        'pdf': 'fa-file-pdf-o',
+        'doc': 'fa-file-word-o',
+        'docx': 'fa-file-word-o',
+        'xls': 'fa-file-excel-o',
+        'xlsx': 'fa-file-excel-o',
+        'ppt': 'fa-file-powerpoint-o',
+        'pptx': 'fa-file-powerpoint-o',
+        'txt': 'fa-file-text-o',
+        
+        // 视频
+        'mp4': 'fa-file-video-o',
+        'avi': 'fa-file-video-o',
+        'mov': 'fa-file-video-o',
+        'mkv': 'fa-file-video-o',
+        
+        // 音频
+        'mp3': 'fa-file-audio-o',
+        'wav': 'fa-file-audio-o',
+        'ogg': 'fa-file-audio-o',
+        
+        // 压缩文件
+        'zip': 'fa-file-archive-o',
+        'rar': 'fa-file-archive-o',
+        '7z': 'fa-file-archive-o',
+        'tar': 'fa-file-archive-o',
+        
+        // 代码文件
+        'html': 'fa-file-code-o',
+        'css': 'fa-file-code-o',
+        'js': 'fa-file-code-o',
+        'json': 'fa-file-code-o',
+        'xml': 'fa-file-code-o',
+        'php': 'fa-file-code-o',
+        'py': 'fa-file-code-o',
+        'java': 'fa-file-code-o',
+        'c': 'fa-file-code-o',
+        'cpp': 'fa-file-code-o',
+        'h': 'fa-file-code-o',
+        'cs': 'fa-file-code-o',
+        'rb': 'fa-file-code-o',
+        'go': 'fa-file-code-o',
+        'ts': 'fa-file-code-o',
+        'md': 'fa-file-code-o',
+        
+        // 默认
+        'default': 'fa-file-o'
+      };
+      
+      return iconMap[extension] || iconMap['default'];
+    }
+
+    // 获取文件图标颜色
+    function getFileIconColor(extension) {
+      const colorMap = {
+        // 图片
+        'jpg': 'text-blue-500',
+        'jpeg': 'text-blue-500',
+        'png': 'text-blue-500',
+        'gif': 'text-blue-500',
+        'bmp': 'text-blue-500',
+        'svg': 'text-blue-500',
+        
+        // 文档
+        'pdf': 'text-red-500',
+        'doc': 'text-blue-600',
+        'docx': 'text-blue-600',
+        'xls': 'text-green-600',
+        'xlsx': 'text-green-600',
+        'ppt': 'text-orange-500',
+        'pptx': 'text-orange-500',
+        'txt': 'text-gray-600',
+        
+        // 视频
+        'mp4': 'text-red-600',
+        'avi': 'text-red-600',
+        'mov': 'text-red-600',
+        'mkv': 'text-red-600',
+        
+        // 音频
+        'mp3': 'text-purple-600',
+        'wav': 'text-purple-600',
+        'ogg': 'text-purple-600',
+        
+        // 压缩文件
+        'zip': 'text-yellow-600',
+        'rar': 'text-yellow-600',
+        '7z': 'text-yellow-600',
+        'tar': 'text-yellow-600',
+        
+        // 代码文件
+        'html': 'text-orange-500',
+        'css': 'text-blue-400',
+        'js': 'text-yellow-500',
+        'json': 'text-yellow-500',
+        'xml': 'text-blue-400',
+        'php': 'text-purple-400',
+        'py': 'text-blue-400',
+        'java': 'text-red-500',
+        'c': 'text-blue-500',
+        'cpp': 'text-blue-500',
+        'h': 'text-blue-500',
+        'cs': 'text-purple-400',
+        'rb': 'text-red-500',
+        'go': 'text-blue-400',
+        'ts': 'text-blue-500',
+        'md': 'text-gray-600',
+        
+        // 默认
+        'default': 'text-gray-400'
+      };
+      
+      return colorMap[extension] || colorMap['default'];
+    }
+
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // 切换视图
+    function switchView(viewType) {
+      if (viewType === currentView || !currentDirectory) return;
+      
+      currentView = viewType;
+      
+      // 更新按钮样式
+      if (viewType === 'grid') {
+        viewGridBtn.classList.remove('bg-gray-200');
+        viewGridBtn.classList.add('bg-gray-100');
+        viewListBtn.classList.remove('bg-gray-100');
+        viewListBtn.classList.add('bg-gray-200');
+      } else {
+        viewListBtn.classList.remove('bg-gray-200');
+        viewListBtn.classList.add('bg-gray-100');
+        viewGridBtn.classList.remove('bg-gray-100');
+        viewGridBtn.classList.add('bg-gray-200');
+      }
+      
+      // 重新加载文件列表
+      displayFiles(currentDirectory);
+    }
+
+    // 过滤文件
+    function filterFiles() {
+      if (!currentDirectory) return;
+      
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      
+      if (searchTerm === '') {
+        // 如果搜索框为空，重新加载所有文件
+        displayFiles(currentDirectory);
+        return;
+      }
+      
+      // 清空文件列表
+      fileList.innerHTML = '';
+      
+      // 创建文件数组
+      const files = [];
+      const directories = [];
+      
+      // 遍历目录内容并过滤
+      const filterDirectory = async (directoryHandle) => {
+        for await (const entry of directoryHandle.values()) {
+          if (entry.name.toLowerCase().includes(searchTerm)) {
+            if (entry.kind === 'file') {
+              files.push(entry);
+            } else if (entry.kind === 'directory') {
+              directories.push(entry);
+            }
+          }
+          
+          // 如果是目录，递归搜索
+          if (entry.kind === 'directory') {
+            await filterDirectory(entry);
+          }
+        }
+      };
+      
+      // 开始过滤
+      filterDirectory(currentDirectory).then(() => {
+        // 按名称排序
+        directories.sort((a, b) => a.name.localeCompare(b.name));
+        files.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // 显示空状态
+        if (directories.length === 0 && files.length === 0) {
+          fileList.innerHTML = `
+            <div class="text-center py-12 text-gray-500">
+              <i class="fa fa-search text-5xl mb-3"></i>
+              <p class="text-lg">未找到包含 "${searchTerm}" 的文件</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // 创建文件列表容器
+        const filesContainer = document.createElement('div');
+        filesContainer.className = currentView === 'grid' 
+          ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' 
+          : 'space-y-1';
+        
+        // 先添加目录
+        for (const directory of directories) {
+          const item = createDirectoryItem(directory);
+          filesContainer.appendChild(item);
+        }
+        
+        // 再添加文件
+        for (const file of files) {
+          const item = createFileItem(file);
+          filesContainer.appendChild(item);
+        }
+        
+        // 添加到文件列表
+        fileList.appendChild(filesContainer);
+      });
+    }
+
+    // 更新面包屑导航
+    function updateBreadcrumb() {
+      pathBreadcrumb.innerHTML = '';
+      
+      let currentPath = '';
+      
+      pathStack.forEach((pathPart, index) => {
+        currentPath += pathPart;
+        
+        const breadcrumbItem = document.createElement('a');
+        breadcrumbItem.href = '#';
+        breadcrumbItem.className = 'hover:text-primary transition-colors flex items-center';
+        breadcrumbItem.textContent = pathPart;
+        
+        breadcrumbItem.addEventListener('click', async (e) => {
+          e.preventDefault();
+          
+          // 如果点击的是最后一个面包屑，不做任何操作
+          if (index === pathStack.length - 1) return;
+          
+          // 构建路径
+          const pathToNavigate = pathStack.slice(0, index + 1);
+          
+          // 找到对应的目录
+          let currentHandle = currentDirectory;
+          
+          // 从根目录开始，逐级查找
+          for (const part of pathToNavigate) {
+            if (part === currentHandle.name) continue;
+            
+            let found = false;
+            for await (const entry of currentHandle.values()) {
+              if (entry.kind === 'directory' && entry.name === part) {
+                currentHandle = entry;
+                found = true;
+                break;
+              }
+            }
+            
+            if (!found) break;
+          }
+          
+          // 显示找到的目录内容
+          if (currentHandle) {
+            await displayFiles(currentHandle);
+            pathStack = pathToNavigate;
+            updateBreadcrumb();
+          }
+        });
+        
+        pathBreadcrumb.appendChild(breadcrumbItem);
+        
+        // 如果不是最后一个路径，添加分隔符
+        if (index < pathStack.length - 1) {
+          const separator = document.createElement('span');
+          separator.className = 'mx-2 text-gray-400';
+          separator.textContent = '/';
+          pathBreadcrumb.appendChild(separator);
+        }
+      });
+    }
+
+    // 折叠所有文件夹
+    function collapseAllFolders() {
+      const expandIcons = document.querySelectorAll('#fileTree .fa-chevron-down');
+      const folderContainers = document.querySelectorAll('#fileTree .tree-node-connector');
+      
+      expandIcons.forEach(icon => {
+        icon.className = 'fa fa-chevron-right mr-2 text-xs text-gray-500';
+      });
+      
+      folderContainers.forEach(container => {
+        container.style.display = 'none';
+      });
+    }
+
+    // 刷新文件列表
+    async function refreshFileList() {
+      if (!currentDirectory) return;
+      
+      // 显示加载状态
+      fileList.innerHTML = `
+        <div class="text-center py-12 text-gray-500">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-3"></div>
+          <p class="text-lg">正在刷新文件列表...</p>
+        </div>
+      `;
+      
+      // 重新加载文件列表
+      await displayFiles(currentDirectory);
+      
+      // 显示成功消息
+      showNotification('成功', '文件列表已刷新', 'success');
+    }
+
+    // 显示文件详情模态框
+    function showFileDetailModal(fileHandle, file) {
+      // 填充模态框内容
+      modalContent.innerHTML = `
+        <div class="flex flex-col md:flex-row gap-6">
+          <div class="md:w-1/4 flex flex-col items-center">
+            <div class="w-20 h-20 flex items-center justify-center ${getFileIconColor(getFileExtension(file.name))} mb-4">
+              <i class="fa ${getFileIcon(getFileExtension(file.name))} text-5xl"></i>
+            </div>
+            <button id="previewFileBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex items-center transition-all duration-300 w-full justify-center">
+              <i class="fa fa-eye mr-2"></i>
+              <span>预览文件</span>
+            </button>
+          </div>
+          
+          <div class="md:w-3/4 space-y-4">
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">文件名</h4>
+              <p class="text-gray-800">${file.name}</p>
+            </div>
+            
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">文件大小</h4>
+              <p class="text-gray-800">${formatFileSize(file.size)}</p>
+            </div>
+            
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">文件类型</h4>
+              <p class="text-gray-800">${file.type || '未知类型'}</p>
+            </div>
+            
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">修改时间</h4>
+              <p class="text-gray-800">${new Date(file.lastModified).toLocaleString()}</p>
+            </div>
+            
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">文件路径</h4>
+              <p class="text-gray-800 truncate">${getPathForFile(fileHandle)}</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 保存当前文件句柄和文件对象，用于下载
+      downloadFileBtn.dataset.fileName = file.name;
+      downloadFileBtn.dataset.fileHandle = JSON.stringify({ name: fileHandle.name });
+      
+      // 显示模态框
+      fileDetailModal.classList.remove('hidden');
+      setTimeout(() => {
+        fileDetailModal.classList.add('opacity-100');
+        fileDetailModal.querySelector('.scale-95').classList.remove('scale-95');
+        fileDetailModal.querySelector('.scale-95').classList.add('scale-100');
+      }, 10);
+      
+      // 添加预览按钮事件
+      document.getElementById('previewFileBtn').addEventListener('click', async () => {
+        try {
+          previewFile(fileHandle, file);
+        } catch (error) {
+          console.error('预览文件时出错:', error);
+          showNotification('错误', '无法预览此文件类型', 'error');
+        }
+      });
+    }
+
+    // 关闭文件详情模态框
+    function closeFileDetailModal() {
+      fileDetailModal.classList.remove('opacity-100');
+      fileDetailModal.querySelector('.scale-100').classList.remove('scale-100');
+      fileDetailModal.querySelector('.scale-100').classList.add('scale-95');
+      
+      setTimeout(() => {
+        fileDetailModal.classList.add('hidden');
+      }, 300);
+    }
+
+    // 下载当前文件
+    async function downloadCurrentFile() {
+      const fileName = downloadFileBtn.dataset.fileName;
+      const fileHandleData = JSON.parse(downloadFileBtn.dataset.fileHandle);
+      
+      try {
+        // 查找文件句柄
+        let fileHandle = null;
+        
+        // 遍历当前目录查找文件
+        const findFile = async (directory) => {
+          for await (const entry of directory.values()) {
+            if (entry.kind === 'file' && entry.name === fileName) {
+              fileHandle = entry;
+              return true;
+            } else if (entry.kind === 'directory') {
+              if (await findFile(entry)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+        
+        // 从当前目录开始查找
+        await findFile(currentDirectory);
+        
+        if (fileHandle) {
+          const file = await fileHandle.getFile();
+          downloadFile(fileHandle, file);
+        } else {
+          showNotification('错误', '找不到要下载的文件', 'error');
+        }
+      } catch (error) {
+        console.error('下载文件时出错:', error);
+        showNotification('错误', '无法下载文件', 'error');
+      }
+    }
+
+    // 下载文件
+    function downloadFile(fileHandle, file) {
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      // 显示成功消息
+      showNotification('成功', `文件 "${file.name}" 已开始下载`, 'success');
+    }
+
+    // 预览文件
+    function previewFile(fileHandle, file) {
+      const fileExtension = getFileExtension(file.name).toLowerCase();
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'].includes(fileExtension);
+      const isText = ['txt', 'md', 'html', 'css', 'js', 'json', 'xml', 'php', 'py', 'java', 'c', 'cpp', 'h', 'cs', 'rb', 'go', 'ts'].includes(fileExtension);
+      const isPDF = fileExtension === 'pdf';
+      
+      if (isImage) {
+        // 预览图片
+        const url = URL.createObjectURL(file);
+        window.open(url, '_blank');
+        URL.revokeObjectURL(url);
+      } else if (isText) {
+        // 预览文本文件
+        file.text().then(text => {
+          const newWindow = window.open('', '_blank');
+          newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>${file.name}</title>
+              <style>
+                body { font-family: 'Courier New', monospace; padding: 20px; max-width: 1200px; margin: 0 auto; }
+                pre { background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+              </style>
+            </head>
+            <body>
+              <h1>${file.name}</h1>
+              <pre>${text}</pre>
+            </body>
+            </html>
+          `);
+          newWindow.document.close();
+        });
+      } else if (isPDF) {
+        // 预览PDF文件
+        const url = URL.createObjectURL(file);
+        window.open(url, '_blank');
+        URL.revokeObjectURL(url);
+      } else {
+        // 不支持的文件类型
+        showNotification('提示', '无法预览此文件类型', 'info');
+      }
+    }
+
+    // 获取文件路径
+    function getPathForFile(fileHandle) {
+      // 由于File System Access API不直接提供完整路径
+      // 我们可以构建一个相对路径
+      
+      let path = '';
+      let currentHandle = fileHandle;
+      
+      // 向上遍历目录树
+      while (currentHandle) {
+        path = currentHandle.name + '/' + path;
+        currentHandle = fileHandleMap.get(currentHandle.parentKey);
+      }
+      
+      // 移除末尾的斜杠
+      if (path.endsWith('/')) {
+        path = path.slice(0, -1);
+      }
+      
+      return path;
+    }
+
+    // 显示通知
+    function showNotification(title, message, type = 'info') {
+      // 创建通知元素
+      const notification = document.createElement('div');
+      notification.className = `fixed bottom-4 right-4 max-w-md rounded-lg shadow-lg p-4 transform transition-all duration-500 ease-in-out z-50 animate-fadeIn`;
+      
+      // 设置通知类型样式
+      if (type === 'success') {
+        notification.classList.add('bg-green-50', 'border-l-4', 'border-green-500');
+      } else if (type === 'error') {
+        notification.classList.add('bg-red-50', 'border-l-4', 'border-red-500');
+      } else if (type === 'warning') {
+        notification.classList.add('bg-yellow-50', 'border-l-4', 'border-yellow-500');
+      } else {
+        notification.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
+      }
+      
+      // 设置通知内容
+      notification.innerHTML = `
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            ${type === 'success' ? '<i class="fa fa-check-circle text-green-500"></i>' : 
+              type === 'error' ? '<i class="fa fa-exclamation-circle text-red-500"></i>' : 
+              type === 'warning' ? '<i class="fa fa-exclamation-triangle text-yellow-500"></i>' : 
+              '<i class="fa fa-info-circle text-blue-500"></i>'}
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-gray-800">${title}</h3>
+            <div class="mt-1">
+              <p class="text-sm text-gray-600">${message}</p>
+            </div>
+          </div>
+          <button class="ml-auto text-gray-400 hover:text-gray-500">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      `;
+      
+      // 添加关闭按钮事件
+      const closeButton = notification.querySelector('button');
+      closeButton.addEventListener('click', () => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      });
+      
+      // 添加到页面
+      document.body.appendChild(notification);
+      
+      // 自动关闭
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 5000);
+    }
+
+    // 初始化应用
+    function initApp() {
+      initEventListeners();
+      
+      // 检测浏览器支持
+      if (!window.showDirectoryPicker) {
+        showNotification('警告', '您的浏览器不支持 File System Access API，请使用最新版本的 Chrome 或 Edge 浏览器', 'warning');
+      }
+      
+      // 尝试自动加载当前HTML文件所在的文件夹
+      tryGetHtmlFileDirectory();
+    }
+
+    // 启动应用
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
 </body>
 </html>
+
