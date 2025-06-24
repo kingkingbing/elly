@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planets and Princesses Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B9D',
+                        secondary: '#4ECDC4',
+                        accent: '#FFD166',
+                        dark: '#2A2D42',
+                        light: '#F7FFF7'
+                    },
+                    fontFamily: {
+                        kids: ['"Comic Sans MS"', '"Chalkboard SE"', 'cursive'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .planet-card {
+                @apply bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1;
+            }
+            .princess-card {
+                @apply bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl;
+            }
+            .btn-jump {
+                @apply bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center gap-2;
+            }
+            .btn-back {
+                @apply bg-secondary hover:bg-secondary/90 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center gap-2;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="font-kids bg-light text-dark min-h-screen">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 bg-dark/90 backdrop-blur-md z-50 transition-all duration-300 shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-accent flex items-center gap-2">
+                <i class="fa fa-star"></i>
+                <span>Planets & Princesses</span>
+            </h1>
+            <div class="hidden md:flex space-x-1">
+                <a href="#snow-white" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Snow White</a>
+                <a href="#little-mermaid" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Little Mermaid</a>
+                <a href="#cinderella" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Cinderella</a>
+                <a href="#belle" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Belle</a>
+                <a href="#jasmine" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Jasmine</a>
+                <a href="#mulan" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Mulan</a>
+                <a href="#thumblina" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Thumblina</a>
+                <a href="#aurora" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Aurora</a>
+            </div>
+            <button class="md:hidden text-white text-xl" id="menu-btn">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+        <!-- Mobile menu -->
+        <div class="md:hidden hidden bg-dark/95 w-full" id="mobile-menu">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-2">
+                <a href="#snow-white" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Snow White</a>
+                <a href="#little-mermaid" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Little Mermaid</a>
+                <a href="#cinderella" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Cinderella</a>
+                <a href="#belle" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Belle</a>
+                <a href="#jasmine" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Jasmine</a>
+                <a href="#mulan" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Mulan</a>
+                <a href="#thumblina" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Thumblina</a>
+                <a href="#aurora" class="text-white hover:text-accent transition-colors duration-200 px-3 py-2 rounded-md">Aurora</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="container mx-auto px-4 pt-32 pb-10 text-center">
+        <div class="bg-gradient-to-r from-primary to-secondary rounded-2xl p-6 md:p-10 shadow-xl">
+            <h2 class="text-[clamp(2rem,5vw,3rem)] font-bold mb-4 text-white">Planets and Princesses Adventure</h2>
+            <p class="text-lg md:text-xl text-white/90 max-w-3xl mx-auto">Explore the eight planets and meet amazing princesses! Click on a planet to learn about a princess.</p>
+        </div>
+    </section>
+
+    <!-- Planets Section -->
+    <section class="container mx-auto px-4 pb-20">
+        <div class="text-center mb-12">
+            <h2 class="text-2xl md:text-3xl font-bold text-dark mb-2">The Eight Planets</h2>
+            <p class="text-dark/70 max-w-2xl mx-auto">Each planet is linked to a wonderful princess. Click to discover!</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Mercury -->
+            <div class="planet-card bg-blue-50">
+                <div class="h-40 overflow-hidden">
+                    <img src="http://qqpublic.qpic.cn/qq_public/0/28-2179894004-6A2CEDD039AEF9B95212473DB6988584/0?fmt=jpg&size=46&h=473&w=474&ppv=1" 
+                         alt="Mercury planet" 
+                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <div class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full mb-2">1</div>
+                    <h3 class="text-lg font-bold text-dark mb-2">Mercury</h3>
+                    <p class="text-dark/70 text-sm mb-3">The closest planet to the Sun. Hot days and cold nights!</p>
+                    <a href="#snow-white" class="btn-jump text-sm w-full justify-center">
+                        Meet Snow White <i class="fa fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Venus -->
+            <div class="planet-card bg-yellow-50">
+                <div class="h-40 overflow-hidden">
+                    <img src="http://qqpublic.qpic.cn/qq_public/0/28-215469814-E49173AB108D6E2B528D442788F13552/0?fmt=jpg&size=143&h=1271&w=1280&ppv=1" 
+                         alt="Venus planet" 
+                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <div class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full mb-2">2</div>
+                    <h3 class="text-lg font-bold text-dark mb-2">Venus</h3>
+                    <p class="text-dark/70 text-sm mb-3">The hottest planet with thick clouds that trap heat.</p>
+                    <a href="#little-mermaid" class="btn-jump text-sm w-full justify-center">
+                        Meet Little Mermaid <i class="fa fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Earth -->
+            <div class="planet-card bg-green-50">
+                <div class="h-40 overflow-hidden">
+                    <img src="http://qqpublic.qpic.cn/qq_public/0/28-2254244965-A0DE3B42FFD3618095856696B0899CF4/0?fmt=jpg&size=52&h=474&w=474&ppv=1" 
+                         alt="Earth planet" 
+                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <div class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full mb-2">3</div>
+                    <h3 class="text-lg font-bold text-dark mb-2">Earth</h3>
+                    <p class="text-dark/70 text-sm mb-3">Our home planet, the only one with life and water!</p>
+                    <a href="#cinderella" class="btn-jump text-sm w-full justify-center">
+                        Meet Cinderella <i class="fa fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mars -->
+            <div class="planet-card bg-red-50">
+                <div class="h-40 overflow-hidden">
+                    <img src="http://qqpublic.qpic.cn/qq_public/0/28-1445440908-14B8B18FCF1DA7E151386B9E99EEAF96/0?fmt=jpg&size=119&h=1280&w=1280&ppv=1" 
+                         alt="Mars planet" 
+                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <div class="bg-red-100 text-red-800 text-xs font-bold px-3 py-1 rounded-full mb-2">4</div>
+                    <h3 class="text-lg font-bold text-dark mb-2">Mars</h3>
+                    <p class="text-dark/70 text-sm mb-3">The "Red Planet" with reddish soil and two small moons.</p>
+                    <a href="#belle" class="btn-jump text-sm w-full justify-center">
+                        Meet Belle <i class="fa fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Jupiter -->
+            <div class="planet-card bg-orange-50">
+                <div class="h-40 overflow-hidden">
+                    <img src="http://qqpublic.qpic.cn/qq_public/0/28-848022373-D2A869B7FDEB9D3AB49FC1E999B6723C/0?fmt=jpg&size=63&h=675&w=900&ppv=1" 
+                         alt="Jupiter planet" 
+                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <div class="bg-orange-100 text-orange-800 text-xs font-bold px-3 py-1 rounded-full mb-2">5</div>
+                    <h3 class="text-lg font-bold text-dark mb-2">Jupiter</h3>
+                    <p class="text-dark/70 text-sm mb-3">The largest planet with a big red spot storm.</p>
+                    <a href="#jasmine" class="btn-jump text-sm w-full justify-center">
+                        Meet Jasmine <i class="fa fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Saturn -->
+            <div class="planet-card bg-purple-50">
+                <div class="h-40 overflow-hidden">
+                    <img src="http://qqpublic.qpic.cn/qq_public/0/28-509965536-8F7807A247B6EF9343E5F9C46ECF63BF/0?fmt=jpg&size=57&h=671&w=1280&ppv=1" 
+                         alt="Saturn planet" 
+                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <div class="bg-purple-100 text-purple-800 text-xs font-bold px-3 py-1 rounded-full mb-2">6</div>
+                    <h3 class="text-lg font-bold text-dark mb-2">Saturn</h3>
+                    <p class="text-dark/70 text-sm mb-3">Known for its beautiful rings made of ice and rocks.</p>
+                    <a href="#mulan" class="btn-jump text-sm w-full justify-center">
+                        Meet Mulan <i class="fa fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Uranus -->
+            <div class="planet-card bg-indigo-50">
+                <div class="h-40 overflow-hidden">
+                    <img src="http://qqpublic.qpic.cn/qq_public/0/28-3368889022-036D8B0B9B68E148C381A1ED0246171F/0?fmt=png&size=560&h=1188&w=1080&ppv=1" 
+                         alt="Uranus planet" 
+                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <div class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full mb-2">7</div>
+                    <h3 class="text-lg font-bold text-dark mb-2">Uranus</h3>
+                    <p class="text-dark/70 text-sm mb-3">It spins on its side! Made of gas with faint rings.</p>
+                    <a href="#thumblina" class="btn-jump text-sm w-full justify-center">
+                        Meet Thumblina <i class="fa fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Neptune -->
+            <div class="planet-card bg-pink-50">
+                <div class="h-40 overflow-hidden">
+                    <img src="http://qqpublic.qpic.cn/qq_public/0/28-2270495483-D8E1C52F45E3BAA5710886303D445EED/0?fmt=jpg&size=27&h=800&w=1280&ppv=1" 
+                         alt="Neptune planet" 
+                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <div class="bg-pink-100 text-pink-800 text-xs font-bold px-3 py-1 rounded-full mb-2">8</div>
+                    <h3 class="text-lg font-bold text-dark mb-2">Neptune</h3>
+                    <p class="text-dark/70 text-sm mb-3">The farthest planet, very cold and windy.</p>
+                    <a href="#aurora" class="btn-jump text-sm w-full justify-center">
+                        Meet Aurora <i class="fa fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Princesses Section -->
+    <section class="bg-gradient-to-b from-light to-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-2xl md:text-3xl font-bold text-dark mb-2">Wonderful Princesses</h2>
+                <p class="text-dark/70 max-w-2xl mx-auto">Learn about these amazing princesses and their stories!</p>
+            </div>
+
+            <!-- Snow White -->
+            <div id="snow-white" class="princess-card mb-12 bg-white">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/3 bg-pink-50 p-6 flex items-center justify-center">
+                        <img src="https://ts1.tc.mm.bing.net/th/id/OIP-C.4RTWIl_Nj4HQ3lWBcc_IWQHaHa?w=155&h=185&c=8&rs=1&qlt=90&o=6&dpr=2&pid=3.1&rm=2" 
+                             alt="Snow White" 
+                             class="w-48 h-auto rounded-lg shadow-md">
+                    </div>
+                    <div class="md:w-2/3 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full mr-3">Linked to Mercury</div>
+                            <h3 class="text-xl font-bold text-dark">Snow White</h3>
+                        </div>
+                        <p class="text-dark/80 mb-4">Snow White is kind and friendly. She lives with seven little dwarfs in a forest cottage. Her favorite color is red, and she loves to sing and clean with the animals.</p>
+                        <p class="text-dark/80 mb-6">She ate a poisoned apple but was saved by a prince's kiss. Snow White teaches us to be kind to everyone, even strangers.</p>
+                        <a href="#" class="btn-back text-sm">
+                            <i class="fa fa-arrow-up"></i>
+                            <span>Back to top</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Little Mermaid -->
+            <div id="little-mermaid" class="princess-card mb-12 bg-white">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/3 bg-blue-50 p-6 flex items-center justify-center">
+                        <img src="https://ts1.tc.mm.bing.net/th/id/OIP-C.udln6x7B_l_E1cQgDJCE8AHaHa?w=165&h=185&c=8&rs=1&qlt=90&o=6&dpr=2&pid=3.1&rm=2" 
+                             alt="Little Mermaid" 
+                             class="w-48 h-auto rounded-lg shadow-md">
+                    </div>
+                    <div class="md:w-2/3 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-secondary text-white text-xs font-bold px-3 py-1 rounded-full mr-3">Linked to Venus</div>
+                            <h3 class="text-xl font-bold text-dark">Little Mermaid</h3>
+                        </div>
+                        <p class="text-dark/80 mb-4">The Little Mermaid, whose name is Ariel, lives under the sea. She loves to collect human things and dreams of walking on land. She has a beautiful voice and swims with fish friends.</p>
+                        <p class="text-dark/80 mb-6">She made a deal with a sea witch to get legs, but she had to give up her voice. Ariel teaches us to follow our dreams and be brave.</p>
+                        <a href="#" class="btn-back text-sm">
+                            <i class="fa fa-arrow-up"></i>
+                            <span>Back to top</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cinderella -->
+            <div id="cinderella" class="princess-card mb-12 bg-white">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/3 bg-yellow-50 p-6 flex items-center justify-center">
+                        <img src="https://ts2.tc.mm.bing.net/th/id/OIP-C.ixFhLRI_iT6WUuxrD49tDgHaJQ?w=296&h=200&c=8&rs=1&o=6&dpr=2&pid=23.1" 
+                             alt="Cinderella" 
+                             class="w-48 h-auto rounded-lg shadow-md">
+                    </div>
+                    <div class="md:w-2/3 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-accent text-dark text-xs font-bold px-3 py-1 rounded-full mr-3">Linked to Earth</div>
+                            <h3 class="text-xl font-bold text-dark">Cinderella</h3>
+                        </div>
+                        <p class="text-dark/80 mb-4">Cinderella is kind and hardworking, even though her stepmother and stepsisters are mean to her. She loves mice and has a fairy godmother who helps her go to a ball.</p>
+                        <p class="text-dark/80 mb-6">She lost a glass slipper at midnight, and a prince used it to find her. Cinderella teaches us to be kind even when others are not, and that dreams can come true.</p>
+                        <a href="#" class="btn-back text-sm">
+                            <i class="fa fa-arrow-up"></i>
+                            <span>Back to top</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Belle -->
+            <div id="belle" class="princess-card mb-12 bg-white">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/3 bg-green-50 p-6 flex items-center justify-center">
+                        <img src="https://ts1.tc.mm.bing.net/th/id/OIP-C.S-co157DnruBOggfM5AiHQHaEK?w=184&h=185&c=8&rs=1&qlt=90&o=6&dpr=2&pid=3.1&rm=2" 
+                             alt="Belle" 
+                             class="w-48 h-auto rounded-lg shadow-md">
+                    </div>
+                    <div class="md:w-2/3 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full mr-3">Linked to Mars</div>
+                            <h3 class="text-xl font-bold text-dark">Belle</h3>
+                        </div>
+                        <p class="text-dark/80 mb-4">Belle loves to read books and is very smart. She lives in a small village but dreams of adventure. She saves her father by living with a Beast in his castle.</p>
+                        <p class="text-dark/80 mb-6">Belle sees the good in the Beast and helps him turn back into a prince. She teaches us to look beyond appearances and love people for who they are inside.</p>
+                        <a href="#" class="btn-back text-sm">
+                            <i class="fa fa-arrow-up"></i>
+                            <span>Back to top</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jasmine -->
+            <div id="jasmine" class="princess-card mb-12 bg-white">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/3 bg-orange-50 p-6 flex items-center justify-center">
+                        <img src="https://wallpapercave.com/wp/wp2987218.jpg" 
+                             alt="Jasmine" 
+                             class="w-48 h-auto rounded-lg shadow-md">
+                    </div>
+                    <div class="md:w-2/3 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-orange-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-3">Linked to Jupiter</div>
+                            <h3 class="text-xl font-bold text-dark">Jasmine</h3>
+                        </div>
+                        <p class="text-dark/80 mb-4">Jasmine is a princess from Agrabah who lives in a palace. She doesn't want to marry a prince she doesn't love, so she runs away and meets Aladdin.</p>
+                        <p class="text-dark/80 mb-6">She rides a magic carpet and outsmarts an evil vizier. Jasmine teaches us to be independent and follow our hearts, not just what others want.</p>
+                        <a href="#" class="btn-back text-sm">
+                            <i class="fa fa-arrow-up"></i>
+                            <span>Back to top</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mulan -->
+            <div id="mulan" class="princess-card mb-12 bg-white">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/3 bg-purple-50 p-6 flex items-center justify-center">
+                        <img src="https://tse4-mm.cn.bing.net/th/id/OIP-C.gTkLzMUMlqnA2tnJ2m8TvAHaEK?rs=1&pid=ImgDetMain" 
+                             alt="Mulan" 
+                             class="w-48 h-auto rounded-lg shadow-md">
+                    </div>
+                    <div class="md:w-2/3 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-3">Linked to Saturn</div>
+                            <h3 class="text-xl font-bold text-dark">Mulan</h3>
+                        </div>
+                        <p class="text-dark/80 mb-4">Mulan is brave and loves her family. When her father is too sick to fight in the army, she dresses as a boy and takes his place.</p>
+                        <p class="text-dark/80 mb-6">She shows that girls can be strong and smart. Mulan teaches us to be brave for our family and to be proud of who we are.</p>
+                        <a href="#" class="btn-back text-sm">
+                            <i class="fa fa-arrow-up"></i>
+                            <span>Back to top</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thumblina -->
+            <div id="thumblina" class="princess-card mb-12 bg-white">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/3 bg-indigo-50 p-6 flex items-center justify-center">
+                        <img src="https://tse3-mm.cn.bing.net/th/id/OIP-C.J4Zx1um-lMKx3mi4OgUkXQHaJ4?rs=1&pid=ImgDetMain" 
+                             alt="Thumblina" 
+                             class="w-48 h-auto rounded-lg shadow-md">
+                    </div>
+                    <div class="md:w-2/3 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-3">Linked to Uranus</div>
+                            <h3 class="text-xl font-bold text-dark">Thumblina</h3>
+                        </div>
+                        <p class="text-dark/80 mb-4">Thumblina is very small, about the size of a thumb. She is born from a flower and has many adventures, meeting frogs, beetles, and birds.</p>
+                        <p class="text-dark/80 mb-6">She wants to find a home where she belongs. Thumblina teaches us that big things can come in small packages, and to never give up on finding happiness.</p>
+                        <a href="#" class="btn-back text-sm">
+                            <i class="fa fa-arrow-up"></i>
+                            <span>Back to top</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aurora -->
+            <div id="aurora" class="princess-card mb-12 bg-white">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/3 bg-pink-50 p-6 flex items-center justify-center">
+                        <img src="https://tse2-mm.cn.bing.net/th/id/OIP-C.2KkzJty0rhhb2QpahG2IyQHaNK?rs=1&pid=ImgDetMain" 
+                             alt="Aurora" 
+                             class="w-48 h-auto rounded-lg shadow-md">
+                    </div>
+                    <div class="md:w-2/3 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-pink-600 text-white text-xs font-bold px-3 py-1 rounded-full mr-3">Linked to Neptune</div>
+                            <h3 class="text-xl font-bold text-dark">Aurora</h3>
+                        </div>
+                        <p class="text-dark/80 mb-4">Aurora, also called Sleeping Beauty, is put under a spell as a baby to prick her finger on a spindle and fall asleep for 100 years.</p>
+                        <p class="text-dark/80 mb-6">A prince finds her and wakes her with a kiss. Aurora teaches us that true love can overcome any obstacle, and patience is a virtue.</p>
+                        <a href="#" class="btn-back text-sm">
+                            <i class="fa fa-arrow-up"></i>
+                            <span>Back to top</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-accent py-8">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-xl font-bold mb-4">Planets & Princesses Adventure</h2>
+            <p class="text-accent/70 mb-6">Explore, learn, and have fun discovering the solar system and amazing princesses!</p>
+            <div class="flex justify-center space-x-4">
+                <a href="#snow-white" class="text-accent/70 hover:text-accent transition-colors duration-200">Snow White</a>
+                <a href="#little-mermaid" class="text-accent/70 hover:text-accent transition-colors duration-200">Little Mermaid</a>
+                <a href="#cinderella" class="text-accent/70 hover:text-accent transition-colors duration-200">Cinderella</a>
+                <a href="#belle" class="text-accent/70 hover:text-accent transition-colors duration-200">Belle</a>
+                <a href="#jasmine" class="text-accent/70 hover:text-accent transition-colors duration-200">Jasmine</a>
+                <a href="#mulan" class="text-accent/70 hover:text-accent transition-colors duration-200">Mulan</a>
+                <a href="#thumblina" class="text-accent/70 hover:text-accent transition-colors duration-200">Thumblina</a>
+                <a href="#aurora" class="text-accent/70 hover:text-accent transition-colors duration-200">Aurora</a>
+            </div>
+            <p class="text-accent/50 mt-6 text-sm">Designed for young explorers & storytellers</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menu-btn').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 70,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                }
+            });
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                navbar.classList.add('py-2');
+                navbar.classList.remove('py-3');
+            } else {
+                navbar.classList.add('py-3');
+                navbar.classList.remove('py-2');
+            }
+        });
+    </script>
+</body>
+</html>
